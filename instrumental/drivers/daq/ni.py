@@ -459,10 +459,20 @@ class Task(object):
     To run multiple synchronized reads/writes, we need to make one MiniTask for
     each type, then use the same sample clock for each.
     """
-    def __init__(self, *channels):
+    def __init__(self, *channels, ai_vrange=None, ao_vrange=None):
         """Create a task that uses the given channels.
 
         Each arg can either be a Channel or a tuple of (Channel, path_str)
+
+        ai_vrange (dict) : (key, value) = (channel.name, vrange)
+                           ai channels not specified set to +-10V.
+                           vrange tuples from daq._AI_ranges
+                           Must be in same order as *channels
+
+        ao_vrange (dict) : (key, value) = (channel.name, vrange)
+                           ao channels not specified set to +-10V.
+                           vrange tuples from daq._AO_ranges
+                           Must be in same order as *channels
         """
         self._trig_set_up = False
         self.fsamp = None
@@ -493,7 +503,14 @@ class Task(object):
                     channel.daq, channel.type)
 
             self.channels[path] = channel
-            channel._add_to_minitask(self._mtasks[daq_name][channel.type])
+
+            # short-ckt logic evaluation
+            if ai_vrange is not None and channel.type == 'AI' and channel.name in ai_vrange:
+                channel._add_to_minitask(self._mtasks[daq_name][channel.type], vrange=ai_vrange[channel.name])
+            elif ao_vrange is not None and channel.type == 'AO' and channel.name in ao_vrange:
+                channel._add_to_minitask(self._mtasks[daq_name][channel.type], vrange=ao_vrange[channel.name])
+            else:
+                channel._add_to_minitask(self._mtasks[daq_name][channel.type])
 
             TYPED_CHANNELS[channel.type].append(channel)
         self._setup_master_channel()
@@ -1151,8 +1168,11 @@ class AnalogIn(Channel):
         self._mtask = None
 
     @check_enums(term_cfg=TerminalConfig)
-    def _add_to_minitask(self, minitask, term_cfg='default'):
-        min, max = self.daq._max_AI_range()
+    def _add_to_minitask(self, minitask, term_cfg='default', vrange=None):
+        if vrange is None:
+            min, max = self.daq._max_AI_range()
+        else:
+            min, max = vrange
         mx_task = minitask._mx_task
         mx_task.CreateAIVoltageChan(self.path, '', term_cfg.value, min.m_as('V'), max.m_as('V'),
                                     Val.Volts, '')
@@ -1230,8 +1250,11 @@ class AnalogOut(Channel):
         self.name = chan_name
         self.path = '{}/{}'.format(daq.name, chan_name)
 
-    def _add_to_minitask(self, minitask):
-        min, max = self.daq._max_AO_range()
+    def _add_to_minitask(self, minitask, vrange=None):
+        if vrange is None:
+            min, max = self.daq._max_AO_range()
+        else:
+            min, max = vrange
         mx_task = minitask._mx_task
         mx_task.CreateAOVoltageChan(self.path, '', min.m_as('V'), max.m_as('V'), Val.Volts, '')
 
