@@ -511,6 +511,7 @@ class Task(object):
                 channel._add_to_minitask(self._mtasks[daq_name][channel.type], vrange=ao_vrange[channel.name])
             else:
                 channel._add_to_minitask(self._mtasks[daq_name][channel.type])
+            print("added channel: " + str(channel.name))
 
             TYPED_CHANNELS[channel.type].append(channel)
         self._setup_master_channel()
@@ -1170,8 +1171,10 @@ class AnalogIn(Channel):
     @check_enums(term_cfg=TerminalConfig)
     def _add_to_minitask(self, minitask, term_cfg='default', vrange=None):
         if vrange is None:
+            print('Using default vrange setting')
             min, max = self.daq._max_AI_range()
         else:
+            print('Using vrange=' + str(vrange))
             min, max = vrange
         mx_task = minitask._mx_task
         mx_task.CreateAIVoltageChan(self.path, '', term_cfg.value, min.m_as('V'), max.m_as('V'),
@@ -1252,8 +1255,10 @@ class AnalogOut(Channel):
 
     def _add_to_minitask(self, minitask, vrange=None):
         if vrange is None:
+            print('Using default vrange setting')
             min, max = self.daq._max_AO_range()
         else:
+            print('Using vrange=' + str(vrange))
             min, max = vrange
         mx_task = minitask._mx_task
         mx_task.CreateAOVoltageChan(self.path, '', min.m_as('V'), max.m_as('V'), Val.Volts, '')
