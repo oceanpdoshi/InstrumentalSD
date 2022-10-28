@@ -89,6 +89,11 @@ driver_info = OrderedDict([
         'classes': ['K10CR1'],
         'imports': ['cffi', 'nicelib'],
     }),
+    ('motion._kinesis.kdc', {
+        'params': ['serial'],
+        'classes': ['KDC101'],
+        'imports': ['nicelib'],
+    }),
     ('motion._madcitylabs.nanodrive', {
         'params': ['serial'],
         'classes': ['NanoDrive'],
