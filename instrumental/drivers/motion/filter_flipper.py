@@ -10,6 +10,7 @@ from enum import Enum
 from time import sleep
 import os.path
 from cffi import FFI
+from ctypes.util import find_library
 from nicelib import NiceLib, Sig, NiceObject, RetHandler, ret_return
 from . import Motion
 from .. import ParamSet
@@ -42,7 +43,7 @@ ffi.cdef("""
 
 with open(os.path.join(os.path.dirname(__file__), '_filter_flipper', 'FilterFlipper.h')) as f:
     ffi.cdef(f.read())
-lib = ffi.dlopen(lib_name)
+lib = ffi.dlopen(find_library(lib_name))
 
 
 def list_instruments():
