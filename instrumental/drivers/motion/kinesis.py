@@ -78,6 +78,7 @@ def _get_class(serial):
 DEVICE_CLASSES = {
     37: ('ff', 'FilterFlipper'),
     55: ('isc', 'K10CR1'),
+    27: ('kdc', 'KDC101'),
 }
 
 DEVICE_CLASS_CACHE = {}
